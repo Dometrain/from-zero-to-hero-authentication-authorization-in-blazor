@@ -1,0 +1,31 @@
+﻿@page "/AuthenticationStateTaskandrole";
+@using BlazorWebAppDemoWithAuth
+@using Microsoft.AspNetCore.Authorization
+@inject SuperHeroRepository data
+@inject IAuthorizationService _authorizationService;
+<h3>AuthenticationStateTask and roles</h3>
+
+@foreach(var superhero in superheroes)
+{
+    <div>@superhero.Name</div>
+}
+
+
+@code {
+
+
+    List<Superhero> superheroes=new();
+
+    [CascadingParameter]
+    public required Task<AuthenticationState> authenticationStateTask { get; set; } 
+
+    protected async override Task OnInitializedAsync()
+    {
+        var result = await authenticationStateTask;
+        var authorizationResult = await _authorizationService.AuthorizeAsync(result.User, "RequireAdminRole");
+        if (authorizationResult.Succeeded)
+        {
+            superheroes = data.GetData();
+        }
+    }
+}

@@ -1,0 +1,25 @@
+﻿<AuthorizeView Roles="@Roles" Policy="@Policy" Resource="@Resource">
+    <Authorized>
+        <button disabled="@(!RendererInfo.IsInteractive)" class="btn btn-primary" @onclick="@OnClick">@ChildContent</button>
+    </Authorized>
+    
+    <NotAuthorized>
+        <button class="btn btn-primary" disabled>@ChildContent</button>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+
+@code {
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = @<text>Button</text>;
+    [Parameter]
+    public string? Roles { get; set; }
+    [Parameter]
+    public string? Policy { get; set; }
+    [Parameter]
+    public object? Resource { get; set; }
+}

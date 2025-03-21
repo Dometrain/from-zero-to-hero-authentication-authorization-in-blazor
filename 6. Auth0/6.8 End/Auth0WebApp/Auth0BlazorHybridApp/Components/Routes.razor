@@ -1,0 +1,11 @@
+﻿
+<Router AppAssembly="@typeof(MauiProgram).Assembly">
+    <Found Context="routeData">
+          <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <p>You're not authorized to reach this page. You need to log in.</p>
+            </NotAuthorized>            
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+</Router>

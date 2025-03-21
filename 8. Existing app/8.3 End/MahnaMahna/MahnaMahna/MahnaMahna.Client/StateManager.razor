@@ -1,0 +1,46 @@
+@typeparam T
+@inject PersistentComponentState _persistentComponentState
+@implements IDisposable
+@attribute [StreamRendering]
+
+@ChildContent(_state)
+
+@code {
+    [Parameter]
+    public required RenderFragment<T> ChildContent { get; set; }
+
+    [Parameter]
+    public required Func<Task<T>> GetState { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Key { get; set; } 
+
+    private T _state;
+    private PersistingComponentStateSubscription _subscription;
+    protected override async Task OnInitializedAsync()
+    {
+        _subscription = _persistentComponentState.RegisterOnPersisting(SaveState);
+
+        if (_persistentComponentState.TryTakeFromJson<T>(Key, out var storedState) && storedState != null)
+        {
+            _state = storedState;
+        }
+        else
+        {
+            _state = await GetState.Invoke();
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private Task SaveState()
+    {
+        _persistentComponentState.PersistAsJson(Key, _state);
+        return Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose()
+    {
+        _subscription.Dispose();
+    }
+}

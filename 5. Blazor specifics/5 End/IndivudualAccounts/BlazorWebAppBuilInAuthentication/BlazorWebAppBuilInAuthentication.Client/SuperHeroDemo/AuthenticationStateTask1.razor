@@ -1,0 +1,25 @@
+﻿@page "/AuthenticationStateTask1"
+@using BlazorWebAppDemoWithAuth
+@inject SuperHeroRepository data
+@inject AuthenticationStateProvider provider
+<h3>AuthenticationStateTask1</h3>
+
+@foreach(var superhero in superheroes)
+{
+    <div>@superhero.Name</div>
+}
+
+
+
+@code {
+    List<Superhero> superheroes=new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var result = await provider.GetAuthenticationStateAsync();
+        if (result?.User?.Identity?.IsAuthenticated ?? false)
+        {
+            superheroes = data.GetData();
+        }
+    }
+}

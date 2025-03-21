@@ -1,0 +1,40 @@
+﻿@page "/AuthorizeViewDemo"
+@using BlazorWebAppBuilInAuthentication.Client.Requirements
+<h3>AuthorizeViewDemo</h3>
+
+
+<AuthorizeView>
+    <Authorized>
+        <p>Authorized</p>
+    </Authorized>
+
+    <NotAuthorized>
+        <p>Not Authorized</p>
+    </NotAuthorized>
+
+    <Authorizing>
+        <p>Authorizing</p>
+    </Authorizing>
+</AuthorizeView>
+
+<AuthorizeView>
+    <p>Authorized</p>
+</AuthorizeView>
+
+<AuthorizeView Roles="Admin">
+    <p>Has Admin role</p>
+</AuthorizeView>
+
+<AuthorizeView Policy = "RequireAdminRole">
+    <p>Has admin role via policy</p>
+</AuthorizeView>
+
+
+<AuthorizeView Policy="IsAssignedToUserPolicy" Resource="@item">
+    <p>Is assigned to item</p>
+</AuthorizeView>
+
+
+@code {
+    TodoItem item = new() { AssignedTo = "jimmy@azm.se" };
+}

@@ -1,0 +1,141 @@
+@page "/Items/{Id:int}"
+@using Microsoft.AspNetCore.Authorization
+@inject ITodoApiService _api
+@inject NavigationManager _manager
+@inject IJSRuntime _jsruntime
+@inject IAuthorizationService _authorizationService;
+@inject AuthenticationStateProvider _authenticationStateProvider;
+@attribute [Authorize]
+<h2>Edit Todo Item</h2>
+
+@if (todoItem == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="@todoItem" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="text" class="form-label">Text</label>
+            <AuthorizeView Context="avc" Policy="IsAssignedToUserPolicy" Resource="@todoItem">
+                <Authorized>
+                    <InputText id="text" class="form-control" @bind-Value="todoItem.Text" />
+                </Authorized>
+                <NotAuthorized>
+                    <input type="text" disabled id="text" class="form-control" value="@todoItem.Text" />
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <div class="mb-3">
+            <label for="state" class="form-label">State</label>
+            <InputSelect id="state" class="form-select" @bind-Value="todoItem.State">
+                @foreach (var state in Enum.GetValues(typeof(TodoItemState)).Cast<TodoItemState>())
+                {
+                    <option value="@state">@state</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label for="state" class="form-label">Assigned to</label>
+            <InputSelect id="assignedto" class="form-select" @bind-Value="todoItem.AssignedTo">
+                <option value="">Unassigned</option>
+                @foreach (var user in users.OrderBy(u=>u.Name))
+                {
+                    <option value="@user.User_id">@user.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+
+        <div class="mb-3">
+            <h3>Categories</h3>
+            <div>
+                @foreach (var category in allCategories)
+                {
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="@category.Id" @onchange="@(e => ToggleCategory(e, category))" checked="@todoItem.Categories.Any(i=>i.Id==category.Id)" />
+                        <label class="form-check-label" for="@category.Id">@category.Name</label>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (todoItem != null)
+        {
+            <button type="submit" class="btn btn-primary">Save</button>
+            <MyButton ButtonType="danger" Policy="IsAssignedToUserPolicy" Resource="@todoItem" OnClick="DeleteAsync">Delete</MyButton>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+        }
+    </EditForm>
+}
+
+@code
+{
+    [Parameter]
+    public int Id { get; set; }
+
+    private TodoItem? todoItem;
+    private List<Category> allCategories;
+    private List<Auth0User> users=new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        allCategories = await _api.GetCategoriesAsync();
+        users = await _api.GetUsersAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await _api.UpdateTodoItemAsync(todoItem);
+        _manager.NavigateTo("/");
+    }
+
+    private void Cancel()
+    {
+        _manager.NavigateTo("/");
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (await _jsruntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this item?"))
+        {
+            await _api.DeleteTodoItemAsync(todoItem.Id);
+            _manager.NavigateTo("/");
+        }
+
+    }
+
+    private void ToggleCategory(ChangeEventArgs e, Category category)
+    {
+        if ((bool)e.Value)
+        {
+            if (!todoItem.Categories.Any(c => c.Id == category.Id))
+            {
+                todoItem.Categories.Add(category);
+            }
+        }
+        else
+        {
+            if (todoItem.Categories.Any(c => c.Id == category.Id))
+            {
+                var todoCategory = todoItem.Categories.First(c => c.Id == category.Id);
+                if (todoCategory != null)
+                {
+                    todoItem.Categories.Remove(todoCategory);
+                }
+            }
+        }
+    }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        todoItem = await _api.GetTodoItemByIdAsync(Id);
+       
+        await base.OnParametersSetAsync();
+    }
+}

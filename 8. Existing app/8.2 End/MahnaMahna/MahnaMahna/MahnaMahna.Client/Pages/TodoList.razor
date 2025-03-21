@@ -1,0 +1,37 @@
+@page "/"
+@inject ITodoApiService _api
+
+<div class="todo-list box">
+    <AddNewTodo ItemAdded="@LoadList" />
+    <StateManager GetState="LoadList" Key="TodoList">
+        @if (context != null)
+        {
+            @foreach (var item in context)
+            {
+                <div class="todo">
+                    <InputCheckbox class="form-check-input"
+                                   @bind-Value="@item.IsCompleted"
+                                   @bind-Value:after="@(() => ChangeStatusAsync(item))" />
+                    <span class="todo-text">
+                        <a href="@($"items/{item.Id}")">@item.Text</a>
+
+                    </span>
+                </div>
+            }
+        }
+    </StateManager>
+
+</div>
+
+
+@code {
+    private async Task ChangeStatusAsync(TodoItem item)
+    {
+        await _api.UpdateTodoItemAsync(item);
+    }
+
+    private async Task<List<TodoItem>> LoadList()
+    {
+        return (await _api.GetTodoItemsAsync()).ToList();
+    }
+}

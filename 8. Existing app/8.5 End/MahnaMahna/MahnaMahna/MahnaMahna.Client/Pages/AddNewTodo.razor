@@ -1,0 +1,23 @@
+@inject ITodoApiService _api
+
+<EditForm Model="NewItem" OnValidSubmit="AddNewItemAsync" FormName="Todo">
+        <DataAnnotationsValidator />
+        <section>
+            <InputText @bind-Value="@NewItem.Text" class="contrastbg" placeholder="Add a new todo item" />
+            <button type="submit">Add</button>
+        </section>    
+</EditForm>
+
+@code
+{
+    TodoItem NewItem = new TodoItem();    
+    [Parameter]
+    public EventCallback<TodoItem> ItemAdded { get; set; }
+    private async Task AddNewItemAsync()
+    {
+       
+        var saved = await _api.CreateTodoItemAsync(NewItem);
+        await ItemAdded.InvokeAsync(saved);
+        NewItem = new TodoItem();
+    }
+}

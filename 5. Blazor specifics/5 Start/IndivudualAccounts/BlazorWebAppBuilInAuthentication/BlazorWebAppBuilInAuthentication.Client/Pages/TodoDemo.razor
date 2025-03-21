@@ -1,0 +1,22 @@
+﻿@page "/TodoDemo"
+@using BlazorWebAppBuilInAuthentication.Client.Requirements
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService _authorizationService;
+@inject AuthenticationStateProvider _authenticationStateProvider
+<h3>TodoDemo</h3>
+
+@result
+<button @onclick="@RunTest">Test policy</button>
+
+@code {
+    string result = "";
+
+    async Task RunTest()
+    {
+        TodoItem item = new() { AssignedTo = "jimmy@azm.se" };
+        var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var authorizationResult = await _authorizationService.AuthorizeAsync(state.User, item, "IsAssignedToUserPolicy");
+        result = authorizationResult.Succeeded ? "Wohoo" : "You don't have access";
+    }
+}
+

@@ -1,0 +1,40 @@
+@page "/"
+@inject ITodoApiService _api
+
+<div class="todo-list box">
+    <AddNewTodo ItemAdded="@LoadList" />
+    @foreach (var item in TodoItems)
+    {
+        <div class="todo">
+            <InputCheckbox class="form-check-input"
+                           disabled
+                           @bind-Value="@item.IsCompleted"
+                           @bind-Value:after="@(() => ChangeStatusAsync(item))" />
+            <span class="todo-text"><a href="@($"items/{item.Id}")">@item.Text</a>
+
+        </span>
+        </div>
+    }
+
+</div>
+
+
+@code {
+    private List<TodoItem> TodoItems { get; set; } = new List<TodoItem>();
+    private int Progress => TodoItems.Count() == 0 ? 0 : 100 - (@TodoItems.Count(i => i.State != TodoItemState.Completed) * 100) / TodoItems.Count();
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadList();
+
+        await base.OnInitializedAsync();
+    }
+    private async Task ChangeStatusAsync(TodoItem item)
+    {
+        await _api.UpdateTodoItemAsync(item);
+    }
+
+    private async Task LoadList()
+    {
+        TodoItems = (await _api.GetTodoItemsAsync()).ToList();
+    }
+}

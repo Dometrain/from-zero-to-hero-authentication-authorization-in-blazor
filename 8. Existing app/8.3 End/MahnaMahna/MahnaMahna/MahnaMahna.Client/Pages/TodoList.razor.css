@@ -1,0 +1,8 @@
+/*This is inpired by https://codepen.io/shshaw/pen/WXMdwEc */
+.todo-list {
+    margin: auto;
+}
+
+.todo:last-child {
+    border-bottom: none;
+}
